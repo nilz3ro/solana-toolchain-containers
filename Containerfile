@@ -1,67 +1,50 @@
-# Use Ubuntu 20.04 which has libssl1.1 available
-FROM ubuntu:20.04
+# Use Ubuntu 20.04 as the base image
+FROM ubuntu:20.04 AS base
 
-# Avoid prompts from apt
+# Set environment variables for versions
+ARG RUST_VERSION=1.75.0
+ARG SOLANA_VERSION=1.17.17
+ARG ANCHOR_VERSION=v0.29.0
+
+# Set non-interactive frontend for apt (to avoid prompts during installation)
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies - this layer rarely changes
-RUN apt-get update && apt-get install -y \
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
     curl \
-    git \
     build-essential \
-    pkg-config \
-    libssl1.1 \
     libssl-dev \
-    libudev-dev \
-    python3 \
-    vim \
+    pkg-config \
+    git \
+    cmake \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 18 and Yarn - this layer changes infrequently
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install -g yarn \
-    && rm -rf /var/lib/apt/lists/*
-
-# Arguments for version control - placing them right before use
-ARG RUST_VERSION
-ARG SOLANA_VERSION
-ARG ANCHOR_VERSION
-
-# Install Rust - this layer changes when RUST_VERSION changes
-RUN echo "Installing Rust ${RUST_VERSION}" && \
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${RUST_VERSION}
+# Install Rust and Cargo
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${RUST_VERSION}
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Install Solana CLI - this layer changes when SOLANA_VERSION changes
-RUN echo "Installing Solana ${SOLANA_VERSION}" && \
-    sh -c "$(curl -sSfL https://release.solana.com/v${SOLANA_VERSION}/install)" \
-    && export PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
+# Install Node.js 18 (using NodeSource binary distribution)
+RUN curl -fsSL https://nodejs.org/dist/v18.20.2/node-v18.20.2-linux-x64.tar.xz | tar -xJ -C /usr/local --strip-components=1 && \
+    npm install -g yarn
+
+# Install Solana
+RUN if [ $(echo "${SOLANA_VERSION} < 2.0.0" | bc) -eq 1 ]; then \
+    sh -c "$(curl -sSfL https://release.solana.com/v${SOLANA_VERSION}/install)"; \
+    else \
+    sh -c "$(curl -sSfL https://release.anza.xyz/v${SOLANA_VERSION}/install)"; \
+    fi
+
+# Add Solana binaries to PATH
 ENV PATH="/root/.local/share/solana/install/active_release/bin:${PATH}"
 
-# Install Anchor CLI - this layer changes when ANCHOR_VERSION changes
+# Install Anchor
 RUN echo "Installing Anchor ${ANCHOR_VERSION}" && \
     cargo install --git https://github.com/coral-xyz/anchor --tag ${ANCHOR_VERSION} anchor-cli --locked --force
 
-# Create and build a test project to verify toolchain functionality
-WORKDIR /tmp/verify
-RUN anchor init test_project
+# Set the working directory
+WORKDIR /workspace
 
-WORKDIR /tmp/verify/test_project
-RUN cargo check
-RUN anchor build 
-RUN echo "Test build completed successfully"
-
-# Verify installations
-RUN rustc --version && \
-    cargo --version && \
-    node --version && \
-    npm --version && \
-    solana --version && \
-    anchor --version
-
-# Set final working directory
-WORKDIR /app
-RUN rm -rf /tmp/verify/test_project
-
-CMD ["/bin/bash"]
+# Default command
+CMD ["bash"]
