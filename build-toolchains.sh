@@ -17,10 +17,10 @@
 # Array of version combinations to build
 declare -a versions=(
     # "1.66.0 1.14.18 v0.26.0 butterscotch"
-    # "1.75.0 1.18.26 v0.28.0 peanutbrittle"
+    "1.75.0 1.18.26 v0.28.0 peanutbrittle"
     # "1.75.0 1.18.26 v0.30.1 chocolate-chip"
     # "1.75.0 2.0.1 v0.30.1 shortbread"
-    "1.75.0 2.1.5 v0.30.1 oatmeal-raisin"
+    # "1.75.0 2.1.5 v0.30.1 oatmeal-raisin"
 )
 
 # Base name for all images

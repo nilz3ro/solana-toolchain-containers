@@ -1,5 +1,5 @@
-# Use Ubuntu 20.04 as the base image
-FROM ubuntu:20.04 AS base
+# Use Ubuntu 22.04 as the base image
+FROM ubuntu:22.04 AS base
 
 # Set environment variables for versions
 ARG RUST_VERSION=1.75.0
@@ -19,6 +19,8 @@ RUN apt-get update && \
     pkg-config \
     git \
     cmake \
+    vim \
+    tmux \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Rust and Cargo
@@ -30,7 +32,7 @@ RUN curl -fsSL https://nodejs.org/dist/v18.20.2/node-v18.20.2-linux-x64.tar.xz |
     npm install -g yarn
 
 # Install Solana
-RUN if [ $(echo "${SOLANA_VERSION} < 2.0.0" | bc) -eq 1 ]; then \
+RUN if [ "$SOLANA_VERSION" \< "2.0.0" ]; then \
     sh -c "$(curl -sSfL https://release.solana.com/v${SOLANA_VERSION}/install)"; \
     else \
     sh -c "$(curl -sSfL https://release.anza.xyz/v${SOLANA_VERSION}/install)"; \
