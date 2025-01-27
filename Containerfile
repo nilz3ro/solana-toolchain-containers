@@ -15,12 +15,14 @@ RUN apt-get update && apt-get install -y \
     libudev-dev \
     python3 \
     vim \
+    tmux \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 18 and Yarn - this layer changes infrequently
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs \
     && npm install -g yarn \
+    && npm install -g @metaplex-foundation/amman \
     && rm -rf /var/lib/apt/lists/*
 
 # Arguments for version control - placing them right before use
@@ -51,6 +53,7 @@ WORKDIR /tmp/verify/test_project
 RUN cargo check
 RUN anchor build 
 RUN echo "Test build completed successfully"
+RUN rm -rf /tmp/verify/test_project
 
 # Verify installations
 RUN rustc --version && \
@@ -62,6 +65,5 @@ RUN rustc --version && \
 
 # Set final working directory
 WORKDIR /app
-RUN rm -rf /tmp/verify/test_project
 
 CMD ["/bin/bash"]

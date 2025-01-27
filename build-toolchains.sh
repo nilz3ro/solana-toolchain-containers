@@ -4,8 +4,7 @@
 # Array of version combinations to build
 declare -a versions=(
     "1.66.0 1.14.18 v0.26.0 butterscotch"
-    "1.75.0 1.18.26 v0.28.0 batch1"
-    "1.75.0 1.18.26 v0.30.0 batch2"
+    "1.75.0 1.18.26 v0.28.0 peanutbrittle"
 )
 
 for version in "${versions[@]}"; do
