@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     libudev-dev \
     python3 \
     vim \
+    jq \
     tmux \
     && rm -rf /var/lib/apt/lists/*
 
@@ -22,6 +23,7 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs \
     && npm install -g yarn \
+    && npm install -g pnpm \
     && npm install -g @metaplex-foundation/amman \
     && rm -rf /var/lib/apt/lists/*
 
